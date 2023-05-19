@@ -1,19 +1,18 @@
-from flask import Flask, request, redirect, url_for
+from flask import Flask, request, redirect, url_for, render_template
+from tweets import get_all_tweets, add_tweet, get_tweets_by_username
 
 app = Flask(__name__)
 # GLOBAL VARIABLE
-tweets = []
 current_user = ''
 
 
 def get_html_form(action, header, field_title, name, button_value):
-  return f'''
-          <form method="POST" action="{action}">
-              <h3>{header}</h3>
-              {field_title}: <input type="text" name="{name}"/>
-              <input type="submit" value="{button_value}"/>
-          </form>
-    '''
+  return render_template('form.html',
+                         action=action,
+                         header=header,
+                         field_title=field_title,
+                         name=name,
+                         button_value=button_value)
 
 
 @app.route('/')
@@ -23,8 +22,12 @@ def index():
     return redirect(url_for('tweet'))
   # if user is not logged in go to login page
   else:
-    return get_html_form('/login', 'Please Login', 'Username', 'username',
-                         'Login')
+    return render_template('form.html',
+                           action='/login',
+                           header='Please Login',
+                           field_title='Username',
+                           name='username',
+                           button_value='Login')
 
 
 @app.route('/login', methods=['POST'])
@@ -36,33 +39,54 @@ def login():
   # return f'current user name is {current_user}'
 
 
+#remove the current_user
+#redirect to home page
+@app.route('/logout')
+def logout():
+  global current_user
+  current_user = ''
+  return redirect(url_for('index'))
+  # username = request.form.get('username')
+  # return f'current user name is {current_user}'
+  # index is our main page (/)
+
+
 @app.route('/tweet')
 def tweet():
-  return get_html_form('/save_tweet', 'what is happening?', 'Tweet', 'tweet',
-                       'Tweet')
+
+  return render_template('form.html',
+                         action='/save_tweet',
+                         header='what is happening?',
+                         field_title='Tweet',
+                         name='tweet',
+                         button_value='Tweet')
 
 
 @app.route('/save_tweet', methods=['POST'])
 def contact():
   tweet = request.form['tweet']
-  tweets.append(tweet)
+  add_tweet(tweet, current_user)
   return 'Successfully recieved tweet ' + tweet
 
 
-@app.route('/my-tweets')
-def my_tweets():
+@app.route('/tweets/<username>')
+@app.route('/tweets')
+def user_tweets(username=None):
   tweet_html = ""
-  for tweet in tweets:
-    tweet_html += f'<li>{tweet}</li>'
+  for tweet in get_tweets_by_username(username):
+
+    tweet_html += f'<li>{tweet["tweet"]} by {tweet["username"]}</li>'
 
   return f'''
     <h1>All my tweet</h1>
     <ol>{tweet_html}<ol>
+
+
+    <br>
+    <br>
+  
+    <a href='/logout'>logout {current_user}</a>
   '''
 
 
 app.run(host='0.0.0.0', port=81)
-
-
-# app.run(host='0.0.0.0', port=81)
- 
