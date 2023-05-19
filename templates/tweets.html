@@ -1,0 +1,7 @@
+<h1>All {{current_user}} tweet</h1>
+  <ol>
+    {% for tweet in tweets %}
+    <li>{{tweet["tweet"]}} by {{tweet["username"] }}</li>
+    {% endfor %}
+    <ol>
+  <br>
