@@ -3,7 +3,7 @@ from tweets import get_all_tweets, add_tweet, get_tweets_by_username
 
 app = Flask(__name__)
 # GLOBAL VARIABLE
-current_user = ''
+current_user = '' 
 
 
 def get_html_form(action, header, field_title, name, button_value):
@@ -72,21 +72,7 @@ def contact():
 @app.route('/tweets/<username>')
 @app.route('/tweets')
 def user_tweets(username=None):
-  tweet_html = ""
   for tweet in get_tweets_by_username(username):
+    return render_template('tweets.html', tweets = tweets, current_user = current_user)
 
-    tweet_html += f'<li>{tweet["tweet"]} by {tweet["username"]}</li>'
-
-  return f'''
-    <h1>All my tweet</h1>
-    <ol>{tweet_html}<ol>
-
-
-    <br>
-    <br>
-  
-    <a href='/logout'>logout {current_user}</a>
-  '''
-
-
-app.run(host='0.0.0.0', port=81)
+ 
