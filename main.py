@@ -72,7 +72,6 @@ def contact():
 @app.route('/tweets/<username>')
 @app.route('/tweets')
 def user_tweets(username=None):
-  for tweet in get_tweets_by_username(username):
-    return render_template('tweets.html', tweets = tweets, current_user = current_user)
-
+  tweets = get_tweets_by_username(username)
+  return render_template('tweets.html', tweets = tweets, current_user = current_user)
  
