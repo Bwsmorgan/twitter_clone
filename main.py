@@ -1,9 +1,9 @@
+import db
 from flask import Flask, request, redirect, url_for, render_template
 from tweets import get_all_tweets, add_tweet, get_tweets_by_username
 
 app = Flask(__name__)
-# GLOBAL VARIABLE
-current_user = '' 
+current_user = ''  #GLOBAL
 
 
 def get_html_form(action, header, field_title, name, button_value):
@@ -73,8 +73,14 @@ def contact():
 @app.route('/tweets')
 def user_tweets(username=None):
   if username:
-    tweets = get_tweets_by_username(username)  
+    tweets = get_tweets_by_username(username)
   else:
     tweets = get_all_tweets()
-  return render_template('tweets.html', tweets = tweets, current_user = current_user, username=username)
+  return render_template('tweets.html',
+                         tweets=tweets,
+                         current_user=current_user,
+                         username=username)
+
+
+app.run(host='0.0.0.0', port=81)
 

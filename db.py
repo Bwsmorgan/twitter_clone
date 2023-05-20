@@ -1,6 +1,6 @@
 import sqlite3
 
-conn = sqlite3.connect('tweets.db')  #creates a tweet db file
+conn = sqlite3.connect('tweets.db', check_same_thread=False)
 cursor = conn.cursor()
 
 cursor.execute(
@@ -20,7 +20,7 @@ def create_tweets(tweets, username):
 
 def get_all_tweets():
 
-  cursor.execute('SELECT tweets FROM tweets')
+  cursor.execute('SELECT * FROM tweets')
   tweets = cursor.fetchall()
 
   return tweets
@@ -28,7 +28,7 @@ def get_all_tweets():
 
 def get_tweets_by_username(username):
 
-  cursor.execute('SELECT * FROM tweets WHERE username = username',
+  cursor.execute('SELECT * FROM tweets WHERE username = :username',
                  {'username': username})
   tweets = cursor.fetchmany(10)
 
