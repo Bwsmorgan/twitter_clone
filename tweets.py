@@ -6,7 +6,7 @@ def get_all_tweets():
 
 
 def add_tweet(tweet, username):
-  return db.create_tweets(tweet, username)
+  db.create_tweet(username, tweet)
 
 
 def get_tweets_by_username(username):

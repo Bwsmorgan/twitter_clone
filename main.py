@@ -1,72 +1,67 @@
-import db
 from flask import Flask, request, redirect, url_for, render_template
-from tweets import get_all_tweets, add_tweet, get_tweets_by_username
+from tweets import add_tweet, get_all_tweets, get_tweets_by_username
+from users import create_user, password_match, get_user_by_username
 
 app = Flask(__name__)
-current_user = ''  #GLOBAL
+current_user = ''
+
+from db import init
+
+init()
 
 
-def get_html_form(action, header, field_title, name, button_value):
+def get_html_form(action, header, fieldtitle, fieldname, buttonvalue):
   return render_template('form.html',
                          action=action,
                          header=header,
-                         field_title=field_title,
-                         name=name,
-                         button_value=button_value)
+                         fieldtitle=fieldtitle,
+                         fieldname=fieldname,
+                         buttonvalue=buttonvalue)
 
 
 @app.route('/')
 def index():
-  # if user is logged in redirect to tweet page
   if current_user:
     return redirect(url_for('tweet'))
-  # if user is not logged in go to login page
   else:
-    return render_template('form.html',
-                           action='/login',
-                           header='Please Login',
-                           field_title='Username',
-                           name='username',
-                           button_value='Login')
+    return render_template('login.html')
 
 
 @app.route('/login', methods=['POST'])
 def login():
   global current_user
-  current_user = request.form['username']
-  return redirect(url_for('tweet'))
-  # username = request.form.get('username')
-  # return f'current user name is {current_user}'
+  username = request.form['username']
+  password = request.form['password']
+  authenticated = password_match(username, password)
+  if authenticated:
+    current_user = username
+    return redirect(url_for('tweet'))
+  else:
+    return "Login Failed. Invalid username or password <br> <a href='/'>Try again</a>"
 
 
-#remove the current_user
-#redirect to home page
 @app.route('/logout')
 def logout():
   global current_user
   current_user = ''
   return redirect(url_for('index'))
-  # username = request.form.get('username')
-  # return f'current user name is {current_user}'
-  # index is our main page (/)
 
 
 @app.route('/tweet')
 def tweet():
-
   return render_template('form.html',
-                         action='/save_tweet',
-                         header='what is happening?',
-                         field_title='Tweet',
-                         name='tweet',
-                         button_value='Tweet')
+                         action='/save-tweet',
+                         header='What is happening?',
+                         fieldtitle='Tweet',
+                         fieldname='tweet',
+                         buttonvalue='Tweet')
 
 
-@app.route('/save_tweet', methods=['POST'])
+@app.route('/save-tweet', methods=['POST'])
 def contact():
   tweet = request.form['tweet']
   add_tweet(tweet, current_user)
-  return 'Successfully recieved tweet ' + tweet
+  return 'Successfully received tweet ' + tweet
 
 
 @app.route('/tweets/<username>')
@@ -76,11 +71,30 @@ def user_tweets(username=None):
     tweets = get_tweets_by_username(username)
   else:
     tweets = get_all_tweets()
+
   return render_template('tweets.html',
                          tweets=tweets,
                          current_user=current_user,
                          username=username)
 
 
+@app.route('/register', methods=['GET'])
+def register():
+  return render_template('register.html')
+
+
+@app.route('/register-post', methods=['POST'])
+def register_post():
+  username = request.form['username']
+  password = request.form['password']
+
+  create_user(username, password)
+  user = get_user_by_username(username)
+  print(user)
+  return f'Successfully registered {username} <br> <a href="/">Login</a>'
+
+
 app.run(host='0.0.0.0', port=81)
+
+
 
