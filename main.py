@@ -1,9 +1,9 @@
-from flask import Flask, request, redirect, url_for, render_template
+from flask import Flask, request, redirect, url_for, render_template, session
 from tweets import add_tweet, get_all_tweets, get_tweets_by_username
 from users import create_user, password_match, get_user_by_username
 
 app = Flask(__name__)
-current_user = ''
+app.secret_key = 'OurSuperSecretSessionSecret'
 
 from db import init
 
@@ -21,7 +21,8 @@ def get_html_form(action, header, fieldtitle, fieldname, buttonvalue):
 
 @app.route('/')
 def index():
-  if current_user:
+  # Check if the user is logged in
+  if 'user' in session:
     return redirect(url_for('tweet'))
   else:
     return render_template('login.html')
@@ -34,7 +35,8 @@ def login():
   password = request.form['password']
   authenticated = password_match(username, password)
   if authenticated:
-    current_user = username
+    # Use Flask session
+    session['user'] = username
     return redirect(url_for('tweet'))
   else:
     return "Login Failed. Invalid username or password <br> <a href='/'>Try again</a>"
@@ -42,8 +44,8 @@ def login():
 
 @app.route('/logout')
 def logout():
-  global current_user
-  current_user = ''
+  # Use Flask session
+  del session['user']
   return redirect(url_for('index'))
 
 
@@ -60,7 +62,8 @@ def tweet():
 @app.route('/save-tweet', methods=['POST'])
 def contact():
   tweet = request.form['tweet']
-  add_tweet(tweet, current_user)
+  # Change to use user info from Session
+  add_tweet(tweet, session['user'])
   return 'Successfully received tweet ' + tweet
 
 
@@ -72,9 +75,10 @@ def user_tweets(username=None):
   else:
     tweets = get_all_tweets()
 
+  # Change to use user info from Session
   return render_template('tweets.html',
                          tweets=tweets,
-                         current_user=current_user,
+                         current_user=session['user'],
                          username=username)
 
 
@@ -95,6 +99,7 @@ def register_post():
 
 
 app.run(host='0.0.0.0', port=81)
+
 
 
 
